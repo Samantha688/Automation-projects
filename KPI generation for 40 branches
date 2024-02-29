@@ -1,0 +1,136 @@
+import pandas as pd
+
+df = pd.read_csv('B.csv')
+
+#to update
+VNO = ['F-BR23C','F-BR23EB','F-BR23TP','F-BR23M1G', 'F-BR23M2G','F-BR22M2G','F-BR22M3G','F-BR22M4G','F-BR22TP','S-BR22EB','S-BR22C']
+SGO = ['F-BR21C','F-BR21EB','F-BR21M1G','F-BR21M2G','F-BR21M3G','F-BR21TP','S-BR21EB']
+MLO = ['F-BR19C', 'F-BR19EB', 'F-BR19TP', 'S-BR19EB']
+BKKO = ['F-BR22C', 'F-BR22EB','F-BR22M1G','F-BR22M1G','']
+DBO = ['F-BR39C', 'S-BR39C', 'F-BR39EB', 'F-BR39M1G', 'F-BR39M2G', 'F-BR39M3G', 'F-BR39M4G', 'F-BR39M5G' ,'F-BR39M6G' ,'F-BR39M1C' ,'F-BR39TP' ,'S-BR39EB','F-BR42C','F-BR42EB','F-BR42TP','S-BR42EB']
+NYO = ['F-BR50C','F-BR50EB','F-BR50TP','S-BR50EB']
+CHO = ['F-BR48C','F-BR48EB','F-BR48M1G','F-BR48TP','S-BR48EB']
+LAO = ['F-BR49C ','F-BR49EB','F-BR49TP','S-BR49EB']
+MCO = ['F-BR47C','F-BR47EB','F-BR47TP','S-BR47EB']
+SNO = ['F-BR27C','F-BR27EB','F-BR27M1G','F-BR27M2G','F-BR27M3G','F-BR27TP','S-BR27EB']
+CUO = ['F-BR02C','F-BR02M1IC','F-BR02EB','F-BR02TP','S-BR02EB'] 
+GZO = ['F-BR06C', 'F-BR06EB', 'F-BR06M1IC', 'F-BR06M1C', 'F-BR06M2IC','F-BR06M2C', 'F-BR06M1G', 'F-BR06M2G', 'F-BR06M3G', 'F-BR06M4G', 'F-BR06M5G', 'F-BR06M6G', 'F-BR06M7G', 'F-BR06M1C', 'F-BR06TP', 'S-BR06EB'] 
+BJO = ['F-BR01C', 'F-BR01EB', 'F-BR01M10G', 'F-BR01M11G', 'F-BR01M12G', 'F-BR01M1C', 'F-BR01M2C', 'F-BR01M1G', 'F-BR01M1TP', 'F-BR01M2G', 'F-BR01M3G', 'F-BR01M4G', 'F-BR01M5G', 'F-BR01M6G', 'F-BR01M7G', 'F-BR01M8G', 'F-BR01M9G','F-BR01TP', 'S-BR01C', 'S-BR01EB']
+SZO = ['F-BR11C', 'F-BR11M1IC', 'S-BR11C', 'F-BR11EB', 'F-BR11M10G', 'F-BR11M11G', 'F-BR11M12G', 'F-BR11M1G', 'F-BR11M2G', 'F-BR11M3G', 'F-BR11M4G', 'F-BR11M5G', 'F-BR11M6G', 'F-BR11M7G', 'F-BR11M8G', 'F-BR11M9G', 'F-BR11TP', 'S-BR11EB', 'F-BR11SPC']
+CQO = ['F-BR03C', 'F-BR03EB', 'F-BR03M1G', 'F-BR03M2G', 'F-BR03TP', 'S-BR03EB']
+DNO = ['F-BR04C', 'F-BR04EB', 'F-BR04M1G', 'F-BR04M2G', 'F-BR04M3G', 'F-BR04TP', 'S-BR04EB']
+FZO = ['F-BR05C', 'F-BR05M1IC', 'F-BR05EB', 'F-BR05TP', 'S-BR05EB']
+HZO = ['F-BR07C', 'S-BR07C','F-BR07EB', 'F-BR07M1C','F-BR07M1G', 'F-BR07M2G', 'F-BR07M3G', 'F-BR07M4G', 'F-BR07M5G', 'F-BR07M6G', 'F-BR07M7G', 'F-BR07TP', 'S-BR07EB']
+NJO = ['F-BR08C', 'F-BR08EB', 'F-BR08M1C', 'F-BR08TP', 'S-BR08EB'] 
+QDO = ['F-BR09C','F-BR09EB','F-BR09M1C','F-BR09M2C','F-BR09TP','S-BR09EB']
+SHO = ['F-BR10C','F-BR10M1C','F-BR10M2C','F-BR10M3C','F-BR10M4C','F-BR10M5C','F-BR10M6C','F-BR10EB','F-BR10TP','S-BR10EB']
+WHO = ['F-BR12C','S-BR12C','F-BR12EB','F-BR12TP','F-BR12M1IC','S-BR12EB']
+XNO = ['F-BR13C','F-BR13M1C','F-BR13EB','F-BR13M1G','F-BR13M2G','F-BR13M3G','F-BR13M4G','F-BR13M5G','F-BR13M6G','F-BR13M7G','F-BR13TP','F-BR23M3G','S-BR13EB']
+
+#DBO includes Riyadh free code
+
+BODict = {'VNO':['Viet Nam'],'SGO':['Singapore'],'MLO':['Malay'],'BKKO':['Thailand','Pakistan','Myanmar','Bangladesh'],'DBO':['United Arab Emirates',\
+        'Saudi Arabia','Egypt','Qatar'],'MCO':['Mexico'],'SNO':['Australia','New Zealand']}
+for key in ['CUO', 'GZO', 'BJO','SZO','CQO','DNO','FZO','HZO','NJO','QDO','SHO','WHO','XNO']:
+    BODict[key] = ['Mainland China']
+for key in ['NYO','CHO','LAO']:
+    BODict[key] = ['USA']
+   
+#even single item has to be presented in list, otherwise len() will return no of letters instead of number of items in the list
+#no need to add the two VIP codes to any lists since these rows can be found using country conditions
+
+StatesBO = {'USA': ['CHO','LAO','NYO'], 'Mainland China':['CUO', 'GZO', 'BJO','SZO','CQO','DNO','FZO','HZO','NJO','QDO','SHO','WHO','XNO']} # more to add more china BO
+Desc = {'CHO':['Chicago'],'LAO':['Los Angeles'],'NYO':['New York'],\
+        'CUO':['Chengdu'],'GZO':['Guangzhou'],'BJO':['Beijing'],'SZO':['Shenzhen'],\
+        'CQO':['Chongqing'],'DNO':['Dalian'],'FZO':['Fuzhou'],'HZO':['Hangzhou'],\
+        'NJO':['Nanjing'],'QDO':['Qingdao'],'SHO':['Shanghai'],'WHO':['Wuhan'],'XNO':['Xian']
+       }
+
+#main code
+def KPI(x,y):
+    df_sliced = pd.DataFrame(columns=['Pass Type', 'barcode', 'Notes: Participant Scheme','pcode','Promo Code Description','seniority (in presentable format)','Country','display_name','title_code','first_name','last_name','position','company','head_office_country_code','Address 1','Address 2','Address 3','Address 4','State Name'])
+    for i in x:
+        df_new= df[df['pcode'] == i]
+        df_sliced = df_sliced.append(df_new)
+    for j in range(len(BODict[y])):
+        df_new = df[df['Country'].str.contains (pat= BODict[y][j])]
+        df_sliced = df_sliced.append(df_new)
+       
+    #remove same country another BO rows
+    if y in ('CHO','NYO','LAO','CUO', 'GZO', 'BJO','SZO','CQO','DNO','FZO','HZO','NJO','QDO','SHO','WHO','XNO'):
+        temp = StatesBO[BODict[y][0]]
+        temp_n = temp[:]
+        temp_n.remove(str(y))
+        for z in temp_n:
+            index_del = df_sliced[df_sliced['Promo Code Description'].str.contains (str(Desc[z][0]))].index
+            df_sliced.drop(index_del, inplace = True)
+
+    df_sliced = df_sliced.drop_duplicates()
+   
+    #drop specific columns
+    def col_to_drop(keyword):
+        to_drop = df_sliced[df_sliced['Promo Code Description'].str.contains (keyword)].index
+        df_sliced.drop(to_drop, inplace = True)
+       
+    col_to_drop('FSTB Nominated')
+    col_to_drop('Sponsors')
+    col_to_drop('Chambers, CGs and Related')
+    col_to_drop('Media Partners')
+               
+    #reorder cols
+    new_order = ['barcode','Notes: Participant Scheme',\
+             'pcode','Promo Code Description','Pass Type',\
+             'title_code','first_name','last_name','display_name',\
+             'position','company','seniority (in presentable format)',\
+             'Country','head_office_country_code','Address 1','Address 2','Address 3','Address 4','State Name']
+   
+    df_sliced = df_sliced.reindex(columns=new_order)
+   
+    #rename cols
+    rename = {'barcode':'Registration No.','Notes: Participant Scheme':'Reg Type',\
+             'pcode':'Registration Code','Promo Code Description':'Category',\
+             'title_code':'Salutation','first_name':'First Name','last_name':'Last Name','display_name':'Display Name',\
+             'position':'Position','company':'Company','seniority (in presentable format)':'Seniority',\
+             'Country':'Country/Region','head_office_country_code':'Country/Region of head office'}
+
+    df_sliced = df_sliced.rename(columns=rename)
+   
+    #add extra cols
+    df_sliced.insert(1, 'BO', y)
+    df_sliced.insert(2, 'Multipler', None)
+   
+    #export to csv, add this code if ready to export to csv
+    #df_sliced.to_csv(y+ '_'+str(pd.to_datetime('now'))+'.csv', index=False, na_rep='N/A', index_label='ID',encoding='utf-8-sig')
+    return df_sliced
+
+print(KPI(VNO,'VNO').shape[0])
+print(KPI(SGO,'SGO').shape[0])
+print(KPI(MLO,'MLO').shape[0])
+print(KPI(BKKO,'BKKO').shape[0])
+print(KPI(DBO,'DBO').shape[0])
+print(KPI(NYO,'NYO').shape[0])
+print(KPI(CHO,'CHO').shape[0])
+print(KPI(LAO,'LAO').shape[0])
+print(KPI(MCO,'MCO').shape[0])
+print(KPI(SNO,'SNO').shape[0])
+print(KPI(CUO,'CUO').shape[0])
+print(KPI(GZO,'GZO').shape[0])
+print(KPI(BJO,'BJO').shape[0])
+print(KPI(SZO,'SZO').shape[0])
+print(KPI(CQO,'CQO').shape[0])
+print(KPI(DNO,'DNO').shape[0])
+print(KPI(FZO,'FZO').shape[0])
+print(KPI(HZO,'HZO').shape[0])
+print(KPI(NJO,'NJO').shape[0])
+print(KPI(QDO,'QDO').shape[0])
+print(KPI(SHO,'SHO').shape[0])
+print(KPI(WHO,'WHO').shape[0])
+print(KPI(XNO,'XNO').shape[0])
+
+#checked:
+#BKKO checked with excel manual filtering - OK - 60, reported = 68
+#CHO cheecked with excel manual filtering - OK, some to manually filter out
+#LAO cheecked with excel manual filtering - OK, some to manually filter out
+#CUO
+
+#note for checking: 64 no provinces name for China offices excl FSTB etc
