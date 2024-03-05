@@ -1,0 +1,306 @@
+#save excel file as csv
+import pandas as pd 
+import numpy as np
+import csv
+import openpyxl
+
+from matplotlib import pyplot as plt
+
+df = pd.read_csv("NGOsRLOsINGOsAcadmeia.csv")
+print(df.columns.to_series().reset_index(drop=True))#showing headers, add print to display
+df = df.rename(columns=lambda x: x.strip()) #clean headers of leading white spaces
+df['Pledging Organization'] = df['Pledging Organization'].str.strip() #cleaning leading white spaces
+df['Region'] = df['Region'].str.strip() #leading white spaces
+df.isna().sum() #check how many na values in each col
+df.dropna(subset = ['Pledging Organization'], inplace = True) #if na in column 'Pledging Organization', dropped 
+df[['Region', 'Pledging Organization','2019 Pledge \nsign-on', '2023 Pledge \nsign-on']] = df[['Region', 'Pledging Organization','2019 Pledge \nsign-on', '2023 Pledge \nsign-on']].fillna('Tbc') #if na, filling with 'Tbc' in these cols
+df.isna().sum() #check na values again 
+
+#making entries consistent 
+df.loc[df["Region"] == "Middle East and North Africa", "Region"] = 'MENA'
+df.loc[df.Region.str.contains(pat = 'lobal'), "Region"] = 'Global' 
+
+df["Countries (Africa)"] = df["Countries (Africa)"].replace("Cameroun","Cameroon")
+df["Countries (Africa)"] = df["Countries (Africa)"].replace("Cameroun","Cameroon")
+df['Countries (Americas)'] = df['Countries (Americas)'].replace("US", "United States")
+
+#Turkey should be MENA
+df.loc[df['Pledging Organization'] == "Afghanistan Hazaras Culture and Solidarity Association (AHCSA)", "Countries (Middle East and North Africa)"] = df.loc[df['Pledging Organization'] == "Afghanistan Hazaras Culture and Solidarity Association (AHCSA)", "Countries (Europe)"]
+df.loc[df['Pledging Organization'] == "Afghanistan Hazaras Culture and Solidarity Association (AHCSA)", "Countries (Europe)"] = ""
+
+                                        
+df['2019 Pledge \nsign-on'] = df['2019 Pledge \nsign-on'].str.capitalize() #e.g. yes --> Yes 
+df['2023 Pledge \nsign-on'] = df['2023 Pledge \nsign-on'].str.capitalize()
+
+#questions to answer: 
+#1. number of pledging organisation
+print('Number of pledging organization: ', df.shape[0])
+print('')
+
+#2. distributions 
+print('Distribution of organization by type: ', df.groupby('Organization Type')['Pledging Organization'].nunique())
+print('')
+
+Region_list = ['Africa', 'Americas', 'Asia','Europe', 'Global', 'MENA','Tbc']
+print('Distribution of organization by region before grouping: ', df.groupby('Region')['Pledging Organization'].nunique())
+
+#create new column of regions, since one org might cover several regions. 
+def new_region_col(df):
+    for i in Region_list: 
+        df[i] = df.Region.str.contains(pat = i)
+    return df[i]
+new_region_col(df)
+#print(new_region_col(df))
+#checking with distribution
+print("")
+
+#create country cols for Tableau visualisation 
+Africa_country_list = ['Uganda', 'Kenya', 'South Africa', 'Burkina Faso', 'Cameroon',\
+                'Central African Republic', 'Mali', 'Niger', 'Nigeria', \
+                'Democratic Republic of the Congo', 'Djibouti', 'Ethiopia',\
+                'Kenya', 'Somalia', 'South Sudan','Sudan', 'Tanzania', 'Uganda',\
+                'Burundi', 'Tanzania', 'Mali','Ghana', 'Gambia', 'Kenya', 'Liberia', \
+                'Madagascar','Rwanda', 'Sierra Leonne', 'South Africa', 'Zambia', 'Mozambique', 'Eswatini']
+Americas_country_list =[
+'Argentina',
+'Bolivia',
+'Brazil',
+'Chile',
+'Colombia',
+'Ecuador',
+'El Salvador',
+'Guatemala',
+'Guyana',
+'Haiti',
+'Honduras',
+'Mexico',
+'Peru',
+'United States',
+'Canada',
+'Panama',
+'Venezuela'
+]
+
+
+#cleansing country col 
+df = df.replace('Cameroun','Cameroon ', regex=True)
+df = df.replace('DRC','Democratic Republic of the Congo', regex=True)
+df = df.replace('Republic of the Congo','Democratic Republic of the Congo', regex=True)
+df = df.replace('CAR','Central African Republic', regex=True)
+
+
+
+def new_country_col(df,colname,thelist):
+    for i in thelist: 
+        df[i] = df[colname].str.contains(pat = i)  
+    return df[i]
+new_country_col(df,'Countries (Africa)',Africa_country_list)
+new_country_col(df,'Countries (Americas)',Americas_country_list)
+
+
+print('Distribution of organization by region after grouping: ') #some org appear in multiple regions
+
+def createdict(df,sublist): 
+    region_dict = {}
+    for i in sublist: 
+        region_dict[i] = df[df[i] == True].shape[0]
+    region_dict = {k:[v] for k,v in region_dict.items()} 
+    df_region = pd.DataFrame.from_dict(region_dict) 
+    df_region = df_region.T
+    df_region.columns = ['Occurrence']
+    return df_region
+
+df_region = createdict(df,Region_list)
+
+All = df[df['Countries (Africa)'].str.contains('All')== True].shape[0]
+df_africa_country = createdict(df,Africa_country_list)
+All = df[df['Countries (Americas)'].str.contains('All')== True].shape[0]
+df_americas_country = createdict(df,Americas_country_list)['Occurrence'] + All
+
+#Organizations with 1) only 2019 sign on; 2) only 2023 sign on; 3) both 2019 and 2023 sign on 
+
+df['2019 Pledge \nsign-on'] = df['2019 Pledge \nsign-on'].str.capitalize()
+
+#checking
+df.groupby('2019 Pledge \nsign-on')['Pledging Organization'].nunique()
+df.groupby('2023 Pledge \nsign-on')['Pledging Organization'].nunique()
+
+print('Organizations signing in 2019 only: ') 
+df_sub_2019 = df[(df['2019 Pledge \nsign-on'] == 'Yes') & (df['2023 Pledge \nsign-on'] == 'No')]
+print('Number of org: ', df_sub_2019.shape[0]) 
+print('List of org: ', df_sub_2019['Pledging Organization'])
+print('')
+
+print('Organizations signing in 2023 only: ') 
+df_sub_2023 = df[(df['2019 Pledge \nsign-on'] == 'No') & (df['2023 Pledge \nsign-on'] == 'Yes')]
+print('Number of org: ', df_sub_2023.shape[0])
+print('List of org: ', df_sub_2023['Pledging Organization'])
+print('Organizations signing in 2023 only by region: ') 
+print(createdict(df_sub_2023,Region_list))
+
+print('')
+print('Organizations signing in both 2019 and 2023: ') 
+df_sub_2019_23 = df[(df['2019 Pledge \nsign-on'] == 'Yes') & (df['2023 Pledge \nsign-on'] == 'Yes')]
+print('Number of org: ', df_sub_2019_23.shape[0])
+print('List of org: ', df_sub_2019_23['Pledging Organization'])
+print('Organizations signing in 2019 and 2023 by region: ') 
+print(createdict(df_sub_2019_23, Region_list))
+
+#problematic entry: Egyptian Initiative for Development both no in 2019 and 2023?
+#35 no yes, 22 yes yes, 1 yes no, 1 no no
+#Asia and Africa have the largest increase in signing among all regions 
+
+#need country breakdown?
+
+#Committed Pro ono Hours
+df['Committed Pro ono Hours']=pd.to_numeric(df['Committed Pro ono Hours'])
+df['Committed Pro ono Hours'].describe()
+
+print('Organization with the most committed hour and the hour: ', df[df['Committed Pro ono Hours'] == df['Committed Pro ono Hours'].max()]['Pledging Organization'], df['Committed Pro ono Hours'].max())
+print('Organization with the least committed hour and the hour: ', df[df['Committed Pro ono Hours'] == df['Committed Pro ono Hours'].min()]['Pledging Organization'], df['Committed Pro ono Hours'].min())
+print('Total hours by all org: ', df['Committed Pro ono Hours'].sum())
+print('Number of organization without committed hours: ', df[df['Committed Pro ono Hours'].isna() == True].count())
+print('Organization without committed hours: ', df[df['Committed Pro ono Hours'].isna() == True]['Pledging Organization'])
+#df_committed = df[df['Committed Pro ono Hours'].isna() == False]
+df_committed = df[df['Committed Pro ono Hours'].isna() == False][['Pledging Organization','Committed Pro ono Hours']]
+print('Organization with committed hours: ', df_committed)
+#10 leaves blank in signing --> 1 + 10 + 22 + 35 + 1 = 69 
+#there is one org with no in both 2019 and 2023 signing - error?
+#
+
+theme_list  = ['Legal Assistance for and Legal Empowerment of Refugees, Stateless People, and Other Displaced People', 'Legal Assistance for RLOs and NGOs', 'Refugee Inclusion and Hiring', 'Legal Advocacy, Policy Engagement, and Asylum Capacity Development', 'Funding and Resource Mobilization', 'Coordination, Collaboration and Legal Capacity Development','Other Pledge in line with the Pledge Framework']
+theme_dict = {}
+#df[df['Legal Assistance for and Legal Empowerment of Refugees, Stateless People, and Other Displaced People'].isna() == False].shape[0]
+#df[df['Legal Assistance for and Legal Empowerment of Refugees, Stateless People, and Other Displaced People'].isna() == False]
+
+for i in theme_list: 
+    theme_dict[i] = df[df[i].isna() == False].shape[0]
+    
+print(theme_dict)
+theme_dict = {k:[v] for k,v in theme_dict.items()} 
+df_theme = pd.DataFrame.from_dict(theme_dict) 
+transposed_df = df_theme.transpose()
+transposed_df.columns.to_series().reset_index(drop=True)
+transposed_df.rename(columns = {0:'Number of org'}, inplace = True) 
+print(transposed_df)
+
+#theme_trans = df_theme.T
+#theme_trans.columns = ['Number of org engaging in the theme']
+#theme_trans
+#df.to_csv(y+ '_'+str(pd.to_datetime('now'))+'.csv', index=False, na_rep='N/A', index_label='ID',encoding='utf-8-sig')
+
+#create summary pages
+data = {'Number of pledging organization': [df.shape[0]],
+        'Number of org signing in 2019':[df_sub_2019.shape[0]],
+        'Number of org signing in 2023':[df_sub_2023.shape[0]],
+        'Number of org signing in both 2019 and 2023':[df_sub_2019_23.shape[0]],
+        'Percentage of org staying':[df_sub_2019_23.shape[0]/df.shape[0]],
+        'Org with most committed hour': [df[df['Committed Pro ono Hours'] == df['Committed Pro ono Hours'].max()]['Pledging Organization'].values[0]],
+        'Most committed hour': [df['Committed Pro ono Hours'].max()],
+        'Org with least committed hour': [df[df['Committed Pro ono Hours'] == df['Committed Pro ono Hours'].min()]['Pledging Organization'].values[0]],
+        'Most committed hour': [df['Committed Pro ono Hours'].min()],
+        'Total hours by all org': [df['Committed Pro ono Hours'].sum()],
+        'Number of organization with committed hours':[df[df['Committed Pro ono Hours'].isna() == False].count().values[0]],
+        'Number of organization without committed hours': [df[df['Committed Pro ono Hours'].isna() == True].count().values[0]],
+        'Percentage of organisations with committed hours':df[df['Committed Pro ono Hours'].isna() == False].count().values[0]/[df.shape[0]]
+       }
+
+df_summary = pd.DataFrame(data)
+df_summary = df_summary.transpose()
+df_summary.rename(columns = {0:'Result'}, inplace = True) 
+
+#tmax = df_covid["totcases"].max()
+#tmin = df_covid["totcases"].min()
+#dfMax = df_covid.loc[df_covid['totcases'] == tmax, 'Country/Region'].values[0]
+#dfMin = df_covid.loc[df_covid['totcases'] == tmin, 'Country/Region'].values[0]
+
+#print(f"The country with the highest number of total cases is: {dfMax} with {tmax} total cases")
+
+#org by region 
+fig = plt.figure(figsize=(10, 7))
+colors = ['#9fb5cf','#cedce6', '#a78faf','#5f4868', '#ef85a8','#b98ae0', '#dfd2d6'] #https://www.color-hex.com/
+plt.pie(createdict(df, Region_list)['Occurrence'], labels = Region_list, autopct='%1.1f%%', colors=colors) #can change decimal places
+plt.title('Distribution of organisations by regions')
+plt.savefig("pie.png", 
+            bbox_inches ="tight",
+            pad_inches = 1, 
+            transparent = True, 
+            facecolor ='#dfeeeb', #https://matplotlib.org/stable/users/explain/colors/colors.html
+            edgecolor ='w')
+plt.show()
+
+
+#org by region (2023) 
+fig = plt.figure(figsize=(10, 7))
+colors = ['#9fb5cf','#cedce6', '#a78faf','#5f4868', '#ef85a8','#b98ae0', '#dfd2d6'] #https://www.color-hex.com/
+plt.pie(createdict(df_sub_2023,Region_list)['Occurrence'], labels = Region_list, autopct='%1.1f%%', colors=colors) #can change decimal places
+plt.title('Distribution of organisations by regions_2023 only')
+plt.savefig("pie_2023.png", 
+            bbox_inches ="tight",
+            pad_inches = 1, 
+            transparent = True, 
+            facecolor ='#dfeeeb', #https://matplotlib.org/stable/users/explain/colors/colors.html
+            edgecolor ='w')
+plt.show()
+
+
+#org by region (2019 and 2023) 
+fig = plt.figure(figsize=(10, 7))
+colors = ['#9fb5cf','#cedce6', '#a78faf','#5f4868', '#ef85a8','#b98ae0', '#dfd2d6'] #https://www.color-hex.com/
+plt.pie(createdict(df_sub_2019_23, Region_list)['Occurrence'], labels = Region_list, autopct='%1.1f%%', colors=colors) #can change decimal places
+plt.title('Distribution of organisations by regions_2019 and 2023')
+plt.savefig("pie_2019_23.png", 
+            bbox_inches ="tight",
+            pad_inches = 1, 
+            transparent = True, 
+            facecolor ='#dfeeeb', #https://matplotlib.org/stable/users/explain/colors/colors.html
+            edgecolor ='w')
+plt.show()
+
+plt.show()
+fig, ax = plt.subplots()
+plt.barh(theme_list,transposed_df['Number of org'], color ='#a78faf')
+plt.title('Distribution of organisations by themes',fontsize = 15)
+plt.xlabel('Number of organisations',fontsize = 10)
+plt.ylabel('Themes',fontsize = 10)
+plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha="right" )
+plt.setp(ax.yaxis.get_majorticklabels(), fontsize = 15)
+
+plt.gcf().subplots_adjust(bottom=0.15)
+plt.savefig("bar.png", 
+            bbox_inches ="tight",
+            pad_inches = 1, 
+            transparent = True, 
+            facecolor ='#dfeeeb', #https://matplotlib.org/stable/users/explain/colors/colors.html
+            edgecolor ='w', 
+            orientation ='landscape') 
+plt.show()
+
+with open('output.csv', 'w') as f:
+     
+    write = csv.writer(f)
+    #write.writerow(fields)
+    write.writerows([[df_sub_2023['Pledging Organization']]])
+    
+df_sub_2019 = pd.DataFrame(df_sub_2019, columns=['Pledging Organization']).reset_index(drop=True)
+df_sub_2023 = pd.DataFrame(df_sub_2023, columns=['Pledging Organization']).reset_index(drop=True)
+df_sub_2019_23 = pd.DataFrame(df_sub_2019_23, columns=['Pledging Organization']).reset_index(drop=True)
+df_committed = pd.DataFrame(df_committed,columns=['Pledging Organization','Committed Pro ono Hours']).reset_index(drop=True)
+#df_sub_2023_region = createdict(df_sub_2023, Region_list)
+
+workbook = openpyxl.Workbook()
+sheet = workbook.active
+workbook.save('output.xlsx')
+
+with pd.ExcelWriter('output.xlsx') as excel_writer:
+    df_sub_2019.to_excel(excel_writer, sheet_name='2019', index=False,encoding='utf-8-sig')
+    df_sub_2023.to_excel(excel_writer, sheet_name='2023', index=False,encoding='utf-8-sig')
+    df_sub_2019_23.to_excel(excel_writer, sheet_name='2019 and 2023', index=False,encoding='utf-8-sig')
+    transposed_df.to_excel(excel_writer, sheet_name='By theme', index=True,encoding='utf-8-sig')
+    df_region.to_excel(excel_writer, sheet_name='By region', index=True,encoding='utf-8-sig')
+    df_committed.to_excel(excel_writer, sheet_name='With committed hours', index= False,encoding='utf-8-sig')
+    df_summary.to_excel(excel_writer, sheet_name='Summary', index= True,encoding='utf-8-sig')
+    #df_sub_2023_region.to_excel(excel_writer, sheet_name='By region_2023 only', index=True,encoding='utf-8-sig')
+    #createdict(df_sub_2019_23, Region_list).to_excel(excel_writer, sheet_name='By region_2019 and 2023', index=True,encoding='utf-8-sig')
+    df_africa_country.to_excel(excel_writer, sheet_name='By country', index=True,encoding='utf-8-sig')
+    df_americas_country.to_excel(excel_writer, sheet_name='By country', index=True,encoding='utf-8-sig')
